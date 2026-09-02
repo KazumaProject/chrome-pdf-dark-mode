@@ -1,0 +1,12 @@
+{
+  "name": "dark-pdf-viewer",
+  "version": "1.8.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node tests/viewer-utils.mjs && node tests/static-layout.mjs && node tests/background.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

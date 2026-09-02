@@ -1,0 +1,8 @@
+{
+  "extensionName": {
+    "message": "Dark PDF Viewer"
+  },
+  "extensionDescription": {
+    "message": "Read PDFs in comfortable dark themes with selectable text, custom colors, and fast lazy rendering."
+  }
+}
