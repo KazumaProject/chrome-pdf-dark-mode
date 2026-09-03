@@ -6,9 +6,11 @@ PDFを快適なダークテーマで閲覧できるChrome拡張機能です。�
 
 ## 主な機能
 
-- Material風テーマ、暖色、高コントラスト、元の色、カスタム文字色・背景色を含む11種類の表示テーマ
+- Nord、Catppuccin Mocha、Solarized Dark、Dracula、Sepia Paper、暖色、高コントラスト、元の色、カスタム文字色・背景色を含む16種類の表示プリセット
 - 画面付近のページだけを処理する軽量な遅延描画
 - PDF内テキストの選択とコピー
+- 現在ページ/総ページ数の入力と、先頭・前・次・末尾ページのナビゲーション
+- 表示・非表示を自動で切り替える縦型ページスクラバー
 - `Ctrl` + マウスホイール、`Ctrl` + `+`、`Ctrl` + `-`、`Ctrl` + `0`によるズーム
 - 現在のページと読んでいる位置を維持するズーム
 - `file:///`のローカルPDF、ドラッグ＆ドロップ、PDFリンク、HTTP/HTTPS URL
@@ -59,6 +61,19 @@ powershell -ExecutionPolicy Bypass -File scripts/package-store.ps1
 ```
 
 [Chrome Web Store公開手順](docs/CHROME_WEB_STORE.ja.md)も参照してください。
+
+### リリース
+
+バージョンを`main`へマージした後、`v1.9.0`のように`manifest.json`と一致するタグをプッシュします。
+
+```bash
+git tag v1.9.0
+git push origin v1.9.0
+```
+
+リリースワークフローがタグと`manifest.json`のバージョンを検証し、拡張機能ZIPを作成してGitHub Releaseへ公開します。
+
+チェックリストとトラブルシューティングは[リリース手順](docs/RELEASE.ja.md)を参照してください。
 
 ## プライバシー
 

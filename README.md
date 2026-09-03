@@ -6,9 +6,11 @@ A local-first Chrome extension for reading PDFs with comfortable dark themes, se
 
 ## Features
 
-- Eleven reading themes, including Material-inspired dark colors, warm paper, high contrast, original colors, and custom text/background colors
+- Sixteen reading presets, including Nord, Catppuccin Mocha, Solarized Dark, Dracula, Sepia Paper, warm paper, high contrast, original colors, and custom text/background colors
 - Fast lazy rendering: only pages near the viewport are rendered
 - Selectable and copyable PDF text
+- Editable current/total page navigation with first, previous, next, and last controls
+- Auto-hiding vertical page scrubber for fast document navigation
 - `Ctrl` + mouse wheel, `Ctrl` + `+`, `Ctrl` + `-`, and `Ctrl` + `0` zoom shortcuts
 - Stable zoom anchoring that keeps the current page and reading position
 - Local `file:///` PDFs, drag-and-drop files, PDF links, and HTTP/HTTPS PDF URLs
@@ -59,6 +61,19 @@ powershell -ExecutionPolicy Bypass -File scripts/package-store.ps1
 ```
 
 See [Chrome Web Store publishing instructions](docs/CHROME_WEB_STORE.md).
+
+### Releases
+
+After merging a version into `main`, push a matching tag such as `v1.9.0`:
+
+```bash
+git tag v1.9.0
+git push origin v1.9.0
+```
+
+The release workflow validates the tag against `manifest.json`, packages the extension, and publishes the ZIP to a GitHub Release.
+
+See the complete [Release Guide](docs/RELEASE.md) for the checklist and troubleshooting steps.
 
 ## Privacy
 

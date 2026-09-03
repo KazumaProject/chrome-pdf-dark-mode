@@ -2,10 +2,12 @@ import * as pdfjsLib from "./vendor/pdf.mjs";
 import {
   buildDuotoneMatrix,
   getAnchoredScrollPosition,
+  getCurrentPageNumber,
   getKeyboardCommand,
   getPageAnchor,
   getWheelZoomDirection,
-  normalizeHexColor
+  normalizeHexColor,
+  normalizePageNumber
 } from "./viewer-utils.js";
 
 const DEFAULT_SETTINGS = Object.freeze({
@@ -21,6 +23,11 @@ const DEFAULT_SETTINGS = Object.freeze({
 const READING_PRESETS = Object.freeze({
   clear: Object.freeze({ mode: "duotone", textColor: "#f1f3f4", backgroundColor: "#202124", brightness: 100, contrast: 108 }),
   material: Object.freeze({ mode: "duotone", textColor: "#e6e1e5", backgroundColor: "#1d1b20", brightness: 100, contrast: 108 }),
+  nord: Object.freeze({ mode: "duotone", textColor: "#e5e9f0", backgroundColor: "#2e3440", brightness: 100, contrast: 104 }),
+  catppuccinMocha: Object.freeze({ mode: "duotone", textColor: "#cdd6f4", backgroundColor: "#1e1e2e", brightness: 100, contrast: 106 }),
+  solarizedDark: Object.freeze({ mode: "duotone", textColor: "#eee8d5", backgroundColor: "#002b36", brightness: 100, contrast: 104 }),
+  dracula: Object.freeze({ mode: "duotone", textColor: "#f8f8f2", backgroundColor: "#282a36", brightness: 100, contrast: 106 }),
+  sepiaPaper: Object.freeze({ mode: "duotone", textColor: "#f5e6c8", backgroundColor: "#30261d", brightness: 100, contrast: 104 }),
   materialBlue: Object.freeze({ mode: "duotone", textColor: "#dbe9ff", backgroundColor: "#171c24", brightness: 100, contrast: 108 }),
   materialGreen: Object.freeze({ mode: "duotone", textColor: "#d9eadf", backgroundColor: "#171d19", brightness: 100, contrast: 108 }),
   materialAmber: Object.freeze({ mode: "duotone", textColor: "#f3e3c3", backgroundColor: "#211b12", brightness: 100, contrast: 108 }),
@@ -48,6 +55,13 @@ const elements = {
   setupChooseButton: document.querySelector("#setupChooseButton"),
   urlForm: document.querySelector("#urlForm"),
   urlInput: document.querySelector("#urlInput"),
+  pageNavigation: document.querySelector("#pageNavigation"),
+  pageFirstButton: document.querySelector("#pageFirstButton"),
+  pagePreviousButton: document.querySelector("#pagePreviousButton"),
+  currentPageInput: document.querySelector("#currentPageInput"),
+  pageTotalOutput: document.querySelector("#pageTotalOutput"),
+  pageNextButton: document.querySelector("#pageNextButton"),
+  pageLastButton: document.querySelector("#pageLastButton"),
   darkModeToggle: document.querySelector("#darkModeToggle"),
   readingPresetSelect: document.querySelector("#readingPresetSelect"),
   textColorInput: document.querySelector("#textColorInput"),
@@ -65,6 +79,9 @@ const elements = {
   originalButton: document.querySelector("#originalButton"),
   viewerArea: document.querySelector("#viewerArea"),
   pdfPages: document.querySelector("#pdfPages"),
+  pageScrubber: document.querySelector("#pageScrubber"),
+  pageScrubberLabel: document.querySelector("#pageScrubberLabel"),
+  pageScrubberRange: document.querySelector("#pageScrubberRange"),
   emptyState: document.querySelector("#emptyState"),
   loadingState: document.querySelector("#loadingState"),
   loadingText: document.querySelector("#loadingText"),
@@ -91,8 +108,15 @@ let pageEntries = [];
 let pageObserver = null;
 let pageRenderQueue = new Set();
 let pageRenderWorkers = 0;
+let currentPageNumber = 0;
+let currentPageUpdateFrame = 0;
+let pageScrubberHideTimer = 0;
+let pageScrubberFrame = 0;
+let pendingScrubberPage = 0;
 let noticeTimer = 0;
 let dragDepth = 0;
+
+const PAGE_SCRUBBER_IDLE_DELAY = 1800;
 
 function assetUrl(relativePath) {
   if (typeof chrome !== "undefined" && chrome.runtime?.getURL) {
@@ -142,6 +166,156 @@ function fileNameFromUrl(source) {
   }
 }
 
+function getTotalPageCount() {
+  return pdfDocument?.numPages || 0;
+}
+
+function updatePageNavigation() {
+  const totalPages = getTotalPageCount();
+  const hasDocument = totalPages > 0;
+  const pageNumber = hasDocument
+    ? normalizePageNumber(currentPageNumber || 1, totalPages, 1)
+    : 0;
+
+  if (hasDocument) currentPageNumber = pageNumber;
+  elements.pageNavigation.hidden = !hasDocument;
+  elements.pageNavigation.setAttribute("aria-label", hasDocument
+    ? `Page navigation, page ${pageNumber} of ${totalPages}`
+    : "Page navigation");
+  elements.currentPageInput.disabled = !hasDocument;
+  elements.currentPageInput.value = hasDocument && document.activeElement !== elements.currentPageInput
+    ? String(pageNumber)
+    : hasDocument
+      ? elements.currentPageInput.value
+      : "";
+  elements.pageTotalOutput.textContent = hasDocument ? String(totalPages) : "—";
+
+  elements.pageFirstButton.disabled = !hasDocument || pageNumber <= 1;
+  elements.pagePreviousButton.disabled = !hasDocument || pageNumber <= 1;
+  elements.pageNextButton.disabled = !hasDocument || pageNumber >= totalPages;
+  elements.pageLastButton.disabled = !hasDocument || pageNumber >= totalPages;
+
+  elements.pageScrubber.hidden = !hasDocument;
+  elements.pageScrubberRange.disabled = !hasDocument;
+  elements.pageScrubberRange.max = String(Math.max(1, totalPages));
+  elements.pageScrubberRange.value = String(hasDocument ? pageNumber : 1);
+  elements.pageScrubberRange.setAttribute(
+    "aria-valuetext",
+    hasDocument ? `Page ${pageNumber} of ${totalPages}` : "No PDF open"
+  );
+  elements.pageScrubberLabel.textContent = hasDocument
+    ? `Page ${pageNumber} of ${totalPages}`
+    : "Page —";
+}
+
+function setCurrentPageNumber(value) {
+  const totalPages = getTotalPageCount();
+  if (!totalPages) {
+    currentPageNumber = 0;
+    updatePageNavigation();
+    return;
+  }
+
+  currentPageNumber = normalizePageNumber(value, totalPages, currentPageNumber || 1);
+  updatePageNavigation();
+}
+
+function getPageRectData() {
+  return pageEntries.map((entry) => ({
+    top: entry.pageElement.offsetTop,
+    left: entry.pageElement.offsetLeft,
+    width: entry.pageElement.offsetWidth,
+    height: entry.pageElement.offsetHeight
+  }));
+}
+
+function updateCurrentPageFromScroll() {
+  const detectedPage = getCurrentPageNumber(getPageRectData(), {
+    scrollTop: elements.viewerArea.scrollTop,
+    height: elements.viewerArea.clientHeight
+  });
+  if (detectedPage) setCurrentPageNumber(detectedPage);
+}
+
+function scheduleCurrentPageUpdate() {
+  if (currentPageUpdateFrame) return;
+  currentPageUpdateFrame = window.requestAnimationFrame(() => {
+    currentPageUpdateFrame = 0;
+    updateCurrentPageFromScroll();
+  });
+}
+
+function hidePageScrubber() {
+  if (
+    elements.pageScrubber.matches(":hover")
+    || elements.pageScrubber.matches(":focus-within")
+    || elements.pageScrubber.classList.contains("dragging")
+  ) return;
+  elements.pageScrubber.classList.remove("revealed");
+}
+
+function schedulePageScrubberHide() {
+  window.clearTimeout(pageScrubberHideTimer);
+  pageScrubberHideTimer = window.setTimeout(hidePageScrubber, PAGE_SCRUBBER_IDLE_DELAY);
+}
+
+function revealPageScrubber(keepVisible = false) {
+  if (!pdfDocument) return;
+  elements.pageScrubber.classList.add("revealed");
+  window.clearTimeout(pageScrubberHideTimer);
+  if (!keepVisible) schedulePageScrubberHide();
+}
+
+function jumpToPage(value, { behavior = "smooth" } = {}) {
+  const totalPages = getTotalPageCount();
+  if (!totalPages || !pageEntries.length) return;
+
+  const pageNumber = normalizePageNumber(value, totalPages, currentPageNumber || 1);
+  const entry = pageEntries[pageNumber - 1];
+  if (!entry) return;
+
+  setCurrentPageNumber(pageNumber);
+  queuePageRender(entry);
+
+  const pageHeight = entry.pageElement.offsetHeight;
+  const centeredTop = entry.pageElement.offsetTop
+    - Math.max(0, (elements.viewerArea.clientHeight - pageHeight) / 2);
+  const maxScrollTop = Math.max(0, elements.viewerArea.scrollHeight - elements.viewerArea.clientHeight);
+  const top = clamp(centeredTop, 0, maxScrollTop);
+  const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false;
+  elements.viewerArea.scrollTo({
+    top,
+    behavior: reducedMotion ? "auto" : behavior
+  });
+}
+
+function commitCurrentPageInput() {
+  if (!pdfDocument) return;
+  const pageNumber = normalizePageNumber(
+    elements.currentPageInput.value,
+    getTotalPageCount(),
+    currentPageNumber || 1
+  );
+  jumpToPage(pageNumber);
+  elements.currentPageInput.value = String(currentPageNumber);
+}
+
+function queueScrubberNavigation() {
+  pendingScrubberPage = normalizePageNumber(
+    elements.pageScrubberRange.value,
+    getTotalPageCount(),
+    currentPageNumber || 1
+  );
+  if (pageScrubberFrame) return;
+
+  pageScrubberFrame = window.requestAnimationFrame(() => {
+    pageScrubberFrame = 0;
+    const pageNumber = pendingScrubberPage;
+    pendingScrubberPage = 0;
+    if (pageNumber) jumpToPage(pageNumber, { behavior: "auto" });
+  });
+}
+
 function updateControlValues() {
   elements.darkModeToggle.checked = settings.darkMode;
   elements.readingPresetSelect.value = settings.readingPreset;
@@ -155,6 +329,7 @@ function updateControlValues() {
   elements.contrastRange.value = String(settings.contrast);
   elements.contrastOutput.value = `${settings.contrast}%`;
   elements.zoomOutput.value = fitWidth ? "Fit" : `${Math.round(zoom * 100)}%`;
+  updatePageNavigation();
 }
 
 function applyDarkMode() {
@@ -228,19 +403,23 @@ function hideLoading() {
 }
 
 function showEmptyState() {
+  currentPageNumber = 0;
   elements.emptyState.classList.remove("hidden");
   elements.fileAccessState.hidden = true;
   elements.loadingState.hidden = true;
   elements.pdfPages.replaceChildren();
+  updatePageNavigation();
 }
 
 function showFileAccessState(source) {
+  currentPageNumber = 0;
   pendingSource = source;
   elements.urlInput.value = source;
   elements.emptyState.classList.add("hidden");
   elements.loadingState.hidden = true;
   elements.pdfPages.replaceChildren();
   elements.fileAccessState.hidden = false;
+  updatePageNavigation();
 }
 
 function loadBytesWithXhr(source) {
@@ -248,7 +427,7 @@ function loadBytesWithXhr(source) {
     const request = new XMLHttpRequest();
     request.open("GET", source, true);
     request.responseType = "arraybuffer";
-    request.withCredentials = true;
+    request.withCredentials = false;
     request.onload = () => {
       // Local file requests report status 0 when they succeed.
       if ((request.status >= 200 && request.status < 300) || (request.status === 0 && request.response)) {
@@ -266,7 +445,7 @@ async function downloadPdfBytes(source) {
   if (source.startsWith("file:")) return loadBytesWithXhr(source);
 
   const response = await fetch(source, {
-    credentials: "include",
+    credentials: "omit",
     cache: "default"
   });
   if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -409,6 +588,7 @@ async function renderPageEntry(entry, generation) {
     entry.rendered = true;
     entry.pageElement.classList.add("rendered");
     pruneRenderedPages(entry);
+    scheduleCurrentPageUpdate();
   })();
 
   try {
@@ -515,6 +695,7 @@ async function renderDocument() {
     });
 
     elements.pdfPages.replaceChildren(...pageEntries.map((entry) => entry.pageElement));
+    setCurrentPageNumber(revealPageNumber);
     const revealEntry = pageEntries[revealPageNumber - 1];
     if (viewPosition && revealEntry) restoreViewPosition(viewPosition, revealEntry.pageElement);
     await renderPageEntry(revealEntry, generation);
@@ -524,6 +705,7 @@ async function renderDocument() {
     if (pendingZoomAnchor === viewPosition) pendingZoomAnchor = null;
 
     observeVisiblePages();
+    scheduleCurrentPageUpdate();
   } catch (error) {
     if (generation !== renderGeneration) return;
     pendingZoomAnchor = null;
@@ -538,12 +720,15 @@ async function openPdfBytes(bytes, displayName, originalSource = "") {
   pageCache = new Map();
   pageMetrics = new Map();
   pageEntries = [];
+  currentPageNumber = 0;
   pendingZoomAnchor = null;
   if (currentLoadingTask) {
     await currentLoadingTask.destroy();
     currentLoadingTask = null;
     pdfDocument = null;
   }
+
+  updatePageNavigation();
 
   currentSource = originalSource;
   elements.originalButton.disabled = !originalSource;
@@ -557,7 +742,8 @@ async function openPdfBytes(bytes, displayName, originalSource = "") {
       cMapPacked: true,
       standardFontDataUrl: assetUrl("vendor/standard_fonts/"),
       wasmUrl: assetUrl("vendor/wasm/"),
-      isEvalSupported: false
+      isEvalSupported: false,
+      enableScripting: false
     });
     currentLoadingTask.onPassword = (updatePassword, reason) => {
       const firstAttempt = reason === pdfjsLib.PasswordResponses.NEED_PASSWORD;
@@ -682,6 +868,43 @@ elements.urlForm.addEventListener("submit", (event) => {
   void loadRemoteSource(elements.urlInput.value);
 });
 
+elements.pageFirstButton.addEventListener("click", () => jumpToPage(1));
+elements.pagePreviousButton.addEventListener("click", () => jumpToPage(currentPageNumber - 1));
+elements.pageNextButton.addEventListener("click", () => jumpToPage(currentPageNumber + 1));
+elements.pageLastButton.addEventListener("click", () => jumpToPage(getTotalPageCount()));
+
+elements.currentPageInput.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") {
+    event.preventDefault();
+    commitCurrentPageInput();
+    elements.currentPageInput.select();
+  } else if (event.key === "Escape") {
+    event.preventDefault();
+    elements.currentPageInput.value = String(currentPageNumber || 1);
+    elements.currentPageInput.blur();
+  }
+});
+
+elements.currentPageInput.addEventListener("blur", commitCurrentPageInput);
+
+elements.pageScrubberRange.addEventListener("input", () => {
+  revealPageScrubber(true);
+  queueScrubberNavigation();
+});
+
+elements.pageScrubber.addEventListener("pointerenter", () => revealPageScrubber(true));
+elements.pageScrubber.addEventListener("pointerleave", schedulePageScrubberHide);
+elements.pageScrubber.addEventListener("focusin", () => revealPageScrubber(true));
+elements.pageScrubber.addEventListener("focusout", schedulePageScrubberHide);
+elements.pageScrubber.addEventListener("pointerdown", () => {
+  elements.pageScrubber.classList.add("dragging");
+  revealPageScrubber(true);
+});
+document.addEventListener("pointerup", () => {
+  elements.pageScrubber.classList.remove("dragging");
+  schedulePageScrubberHide();
+});
+
 elements.darkModeToggle.addEventListener("change", () => {
   setSettings({ ...settings, darkMode: elements.darkModeToggle.checked });
 });
@@ -746,6 +969,16 @@ elements.originalButton.addEventListener("click", () => {
   } else {
     window.open(currentSource, "_blank", "noopener");
   }
+});
+
+elements.viewerArea.addEventListener("scroll", () => {
+  scheduleCurrentPageUpdate();
+  revealPageScrubber();
+});
+
+elements.viewerArea.addEventListener("pointermove", (event) => {
+  const viewerRect = elements.viewerArea.getBoundingClientRect();
+  if (viewerRect.right - event.clientX <= 72) revealPageScrubber();
 });
 
 elements.viewerArea.addEventListener("dragenter", (event) => {

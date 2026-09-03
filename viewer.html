@@ -42,6 +42,28 @@
 
       <div class="separator" aria-hidden="true"></div>
 
+      <nav id="pageNavigation" class="page-navigation" aria-label="Page navigation" hidden>
+        <button id="pageFirstButton" class="icon-button" type="button" title="First page" aria-label="First page" disabled>«</button>
+        <button id="pagePreviousButton" class="icon-button" type="button" title="Previous page" aria-label="Previous page" disabled>‹</button>
+        <label class="page-input-control" title="Current page">
+          <span class="sr-only">Current page</span>
+          <input
+            id="currentPageInput"
+            type="text"
+            inputmode="numeric"
+            autocomplete="off"
+            spellcheck="false"
+            value="1"
+            aria-label="Current page"
+            disabled
+          >
+        </label>
+        <span class="page-divider" aria-hidden="true">/</span>
+        <output id="pageTotalOutput" class="page-total">—</output>
+        <button id="pageNextButton" class="icon-button" type="button" title="Next page" aria-label="Next page" disabled>›</button>
+        <button id="pageLastButton" class="icon-button" type="button" title="Last page" aria-label="Last page" disabled>»</button>
+      </nav>
+
       <label class="switch-control" title="Turn dark mode on or off">
         <input id="darkModeToggle" type="checkbox" checked>
         <span class="switch" aria-hidden="true"></span>
@@ -60,6 +82,11 @@
         <select id="readingPresetSelect">
           <option value="clear">Clear Gray</option>
           <option value="material">Material 3</option>
+          <option value="nord">Nord</option>
+          <option value="catppuccinMocha">Catppuccin Mocha</option>
+          <option value="solarizedDark">Solarized Dark</option>
+          <option value="dracula">Dracula</option>
+          <option value="sepiaPaper">Sepia Paper</option>
           <option value="materialBlue">Material Blue</option>
           <option value="materialGreen">Material Green</option>
           <option value="materialAmber">Material Amber</option>
@@ -140,6 +167,22 @@
       </section>
 
       <div id="pdfPages" class="pdf-pages dark" aria-label="PDF pages"></div>
+
+      <aside id="pageScrubber" class="page-scrubber" aria-label="Page scrubber" hidden>
+        <output id="pageScrubberLabel" class="page-scrubber-label">Page —</output>
+        <label class="sr-only" for="pageScrubberRange">Page</label>
+        <input
+          id="pageScrubberRange"
+          type="range"
+          min="1"
+          max="1"
+          step="1"
+          value="1"
+          aria-label="Page scrubber"
+          aria-valuetext="No PDF open"
+          disabled
+        >
+      </aside>
 
       <section id="loadingState" class="loading-state" hidden>
         <div class="spinner" aria-hidden="true"></div>
