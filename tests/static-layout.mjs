@@ -7,6 +7,7 @@ const js = await readFile(new URL("viewer.js", root), "utf8");
 const html = await readFile(new URL("viewer.html", root), "utf8");
 const manifest = JSON.parse(await readFile(new URL("manifest.json", root), "utf8"));
 const packageJson = JSON.parse(await readFile(new URL("package.json", root), "utf8"));
+const releaseWorkflow = await readFile(new URL(".github/workflows/release.yml", root), "utf8");
 
 const canvasRule = css.match(/\.pdf-page canvas\s*\{([^}]+)\}/)?.[1] || "";
 const pagesRule = css.match(/\.pdf-pages\s*\{([^}]+)\}/)?.[1] || "";
@@ -34,6 +35,11 @@ assert.equal(manifest.manifest_version, 3);
 assert.equal(manifest.default_locale, "en");
 assert.equal(manifest.version, "1.9.0");
 assert.equal(packageJson.version, "1.9.0");
+assert.match(releaseWorkflow, /tags:/);
+assert.match(releaseWorkflow, /v\*\.\*\.\*/);
+assert.match(releaseWorkflow, /contents:\s*write/);
+assert.match(releaseWorkflow, /git merge-base --is-ancestor/);
+assert.match(releaseWorkflow, /gh release create/);
 
 for (const theme of [
   "Material 3",

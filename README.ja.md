@@ -62,6 +62,17 @@ powershell -ExecutionPolicy Bypass -File scripts/package-store.ps1
 
 [Chrome Web Store公開手順](docs/CHROME_WEB_STORE.ja.md)も参照してください。
 
+### リリース
+
+バージョンを`main`へマージした後、`v1.9.0`のように`manifest.json`と一致するタグをプッシュします。
+
+```bash
+git tag v1.9.0
+git push origin v1.9.0
+```
+
+リリースワークフローがタグと`manifest.json`のバージョンを検証し、拡張機能ZIPを作成してGitHub Releaseへ公開します。
+
 ## プライバシー
 
 PDFの内容と表示設定は端末内に保持されます。[プライバシーポリシー](PRIVACY_POLICY.ja.md)をご確認ください。

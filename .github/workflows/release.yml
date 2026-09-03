@@ -1,0 +1,68 @@
+name: Release extension
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out tagged commit
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate tag and release commit
+        id: metadata
+        shell: pwsh
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+          RELEASE_SHA: ${{ github.sha }}
+        run: |
+          $manifest = Get-Content manifest.json -Raw | ConvertFrom-Json
+          if (-not $env:RELEASE_TAG.StartsWith("v")) {
+            throw "Release tags must start with v."
+          }
+
+          $tagVersion = $env:RELEASE_TAG.Substring(1)
+          if ($tagVersion -ne $manifest.version) {
+            throw "Tag $env:RELEASE_TAG does not match manifest version $($manifest.version)."
+          }
+
+          git fetch origin main --no-tags
+          git merge-base --is-ancestor $env:RELEASE_SHA origin/main
+          if ($LASTEXITCODE -ne 0) {
+            throw "The release tag must point to a commit already contained in main."
+          }
+
+          "version=$($manifest.version)" >> $env:GITHUB_OUTPUT
+
+      - name: Package extension
+        shell: pwsh
+        run: ./scripts/package-store.ps1
+
+      - name: Verify package
+        shell: pwsh
+        env:
+          ZIP_PATH: dist/Dark-PDF-Viewer-Chrome-Web-Store-v${{ steps.metadata.outputs.version }}.zip
+        run: |
+          if (-not (Test-Path $env:ZIP_PATH)) {
+            throw "Expected package was not created: $env:ZIP_PATH"
+          }
+
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ZIP_PATH: dist/Dark-PDF-Viewer-Chrome-Web-Store-v${{ steps.metadata.outputs.version }}.zip
+        run: |
+          gh release create "$GITHUB_REF_NAME" "$ZIP_PATH" --repo "$GITHUB_REPOSITORY" --verify-tag --generate-notes --title "Dark PDF Viewer $GITHUB_REF_NAME"

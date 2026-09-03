@@ -62,6 +62,17 @@ powershell -ExecutionPolicy Bypass -File scripts/package-store.ps1
 
 See [Chrome Web Store publishing instructions](docs/CHROME_WEB_STORE.md).
 
+### Releases
+
+After merging a version into `main`, push a matching tag such as `v1.9.0`:
+
+```bash
+git tag v1.9.0
+git push origin v1.9.0
+```
+
+The release workflow validates the tag against `manifest.json`, packages the extension, and publishes the ZIP to a GitHub Release.
+
 ## Privacy
 
 PDF contents and reading preferences stay on the device. See the [Privacy Policy](PRIVACY_POLICY.md).
