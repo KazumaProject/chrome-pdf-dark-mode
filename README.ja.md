@@ -73,6 +73,8 @@ git push origin v1.9.0
 
 リリースワークフローがタグと`manifest.json`のバージョンを検証し、拡張機能ZIPを作成してGitHub Releaseへ公開します。
 
+チェックリストとトラブルシューティングは[リリース手順](docs/RELEASE.ja.md)を参照してください。
+
 ## プライバシー
 
 PDFの内容と表示設定は端末内に保持されます。[プライバシーポリシー](PRIVACY_POLICY.ja.md)をご確認ください。

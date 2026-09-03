@@ -73,6 +73,8 @@ git push origin v1.9.0
 
 The release workflow validates the tag against `manifest.json`, packages the extension, and publishes the ZIP to a GitHub Release.
 
+See the complete [Release Guide](docs/RELEASE.md) for the checklist and troubleshooting steps.
+
 ## Privacy
 
 PDF contents and reading preferences stay on the device. See the [Privacy Policy](PRIVACY_POLICY.md).
