@@ -6,9 +6,11 @@ A local-first Chrome extension for reading PDFs with comfortable dark themes, se
 
 ## Features
 
-- Eleven reading themes, including Material-inspired dark colors, warm paper, high contrast, original colors, and custom text/background colors
+- Sixteen reading presets, including Nord, Catppuccin Mocha, Solarized Dark, Dracula, Sepia Paper, warm paper, high contrast, original colors, and custom text/background colors
 - Fast lazy rendering: only pages near the viewport are rendered
 - Selectable and copyable PDF text
+- Editable current/total page navigation with first, previous, next, and last controls
+- Auto-hiding vertical page scrubber for fast document navigation
 - `Ctrl` + mouse wheel, `Ctrl` + `+`, `Ctrl` + `-`, and `Ctrl` + `0` zoom shortcuts
 - Stable zoom anchoring that keeps the current page and reading position
 - Local `file:///` PDFs, drag-and-drop files, PDF links, and HTTP/HTTPS PDF URLs

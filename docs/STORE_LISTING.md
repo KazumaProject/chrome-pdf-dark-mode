@@ -16,8 +16,10 @@ Dark PDF Viewer turns PDFs into a comfortable, customizable reading experience w
 
 Features:
 
-- Material-inspired dark themes, warm paper, high contrast, pure black, original colors, and custom text/background colors
+- Nord, Catppuccin Mocha, Solarized Dark, Dracula, Sepia Paper, Material-inspired dark themes, warm paper, high contrast, pure black, original colors, and custom text/background colors
 - Selectable and copyable PDF text
+- Editable current/total page navigation with first, previous, next, and last controls
+- Auto-hiding vertical page scrubber for fast navigation through long PDFs
 - Fast lazy rendering that processes only pages near the viewport
 - Familiar Ctrl + mouse wheel and keyboard zoom shortcuts
 - Stable zoom that keeps the current page and reading position
@@ -63,7 +65,7 @@ The extension does not collect user data. PDF contents and URLs are processed on
 
 ### Test instructions
 
-No account or credentials are required. Upload and install the extension, select “Open PDF,” choose any PDF, and test themes, zoom, and text selection. To test a `file:///` URL, enable “Allow access to file URLs” on the extension details page.
+No account or credentials are required. Upload and install the extension, select “Open PDF,” choose any PDF, and test themes, page navigation, zoom, and text selection. To test a `file:///` URL, enable “Allow access to file URLs” on the extension details page.
 
 ## 日本語
 
@@ -81,8 +83,10 @@ Dark PDF Viewerは、PDFを外部サービスへ送信せず、快適でカス�
 
 主な機能：
 
-- Material風ダークテーマ、暖色、高コントラスト、Pure Black、元の色、カスタム文字色・背景色
+- Nord、Catppuccin Mocha、Solarized Dark、Dracula、Sepia Paper、Material風ダークテーマ、暖色、高コントラスト、Pure Black、元の色、カスタム文字色・背景色
 - PDF内テキストの選択とコピー
+- 現在ページ/総ページ数の入力と、先頭・前・次・末尾ページのナビゲーション
+- 長いPDFをすばやく移動できる自動表示・非表示の縦型ページスクラバー
 - 画面付近のページだけを処理する軽量な遅延描画
 - Ctrl + マウスホイールと一般的なキーボードズーム
 - 現在のページと読んでいる位置を維持するズーム

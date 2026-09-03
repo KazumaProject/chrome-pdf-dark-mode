@@ -186,7 +186,8 @@ input:focus-visible {
 .range-control,
 .preset-control,
 .color-control,
-.zoom-control {
+.zoom-control,
+.page-navigation {
   display: flex;
   align-items: center;
   color: var(--muted);
@@ -311,6 +312,65 @@ input:focus-visible {
   font-variant-numeric: tabular-nums;
 }
 
+.page-navigation {
+  gap: 3px;
+  padding: 3px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #101216;
+}
+
+.page-navigation[hidden] {
+  display: none;
+}
+
+.page-navigation .icon-button {
+  width: 27px;
+  min-height: 30px;
+  border-color: transparent;
+  background: transparent;
+  color: #cbd1da;
+  font-size: 17px;
+}
+
+.page-navigation .icon-button:hover:not(:disabled) {
+  border-color: var(--border);
+  background: var(--surface-hover);
+}
+
+.page-input-control {
+  display: flex;
+}
+
+.page-input-control input {
+  width: 42px;
+  height: 30px;
+  padding: 0 4px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--surface-raised);
+  color: var(--text);
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.page-input-control input:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.page-divider {
+  color: #737b87;
+  font-size: 13px;
+}
+
+.page-total {
+  min-width: 28px;
+  color: #c1c7d0;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
 .range-control {
   flex-direction: column;
   align-items: stretch;
@@ -344,6 +404,111 @@ input:focus-visible {
   overflow: auto;
   background: #0d0e11;
   scrollbar-color: #4b505a #17191d;
+}
+
+.page-scrubber {
+  position: fixed;
+  top: calc(var(--toolbar-height) + 16px);
+  right: 10px;
+  bottom: 16px;
+  z-index: 6;
+  display: flex;
+  width: 44px;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 7px;
+  border: 1px solid transparent;
+  border-radius: 18px;
+  background: rgb(23 25 29 / 4%);
+  opacity: 0.2;
+  transform: translateX(22px);
+  transition: opacity 160ms ease, transform 160ms ease, background 160ms ease,
+    border-color 160ms ease;
+}
+
+.page-scrubber:hover,
+.page-scrubber.revealed,
+.page-scrubber:focus-within,
+.page-scrubber.dragging {
+  border-color: rgb(83 90 102 / 82%);
+  background: rgb(23 25 29 / 92%);
+  box-shadow: 0 10px 30px rgb(0 0 0 / 28%);
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.page-scrubber-label {
+  padding: 4px 7px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--surface-raised);
+  color: var(--text);
+  font-size: 11px;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translateX(5px);
+  transition: opacity 120ms ease, transform 120ms ease;
+}
+
+.page-scrubber:hover .page-scrubber-label,
+.page-scrubber.revealed .page-scrubber-label,
+.page-scrubber:focus-within .page-scrubber-label,
+.page-scrubber.dragging .page-scrubber-label {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.page-scrubber input[type="range"] {
+  flex: 1 1 auto;
+  width: 28px;
+  min-height: 100px;
+  margin: 0;
+  accent-color: var(--accent);
+  cursor: grab;
+  writing-mode: vertical-lr;
+  direction: rtl;
+}
+
+.page-scrubber input[type="range"]:active {
+  cursor: grabbing;
+}
+
+.page-scrubber input[type="range"]::-webkit-slider-runnable-track {
+  width: 6px;
+  border-radius: 99px;
+  background: #3c424d;
+}
+
+.page-scrubber input[type="range"]::-webkit-slider-thumb {
+  width: 16px;
+  height: 16px;
+  margin-top: -5px;
+  border: 2px solid #d9d2ff;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 38%);
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.page-scrubber input[type="range"]::-moz-range-track {
+  width: 6px;
+  border-radius: 99px;
+  background: #3c424d;
+}
+
+.page-scrubber input[type="range"]::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border: 2px solid #d9d2ff;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 38%);
+}
+
+.page-scrubber[hidden] {
+  display: none;
 }
 
 .pdf-pages {
@@ -694,7 +859,35 @@ input:focus-visible {
     margin-left: auto;
   }
 
+  .page-navigation {
+    gap: 1px;
+  }
+
+  .page-navigation #pageFirstButton,
+  .page-navigation #pageLastButton {
+    display: none;
+  }
+
+  .page-input-control input {
+    width: 38px;
+  }
+
   .pdf-pages {
     padding-inline: 12px;
+  }
+
+  .page-scrubber {
+    right: 4px;
+    top: 8px;
+    bottom: 10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
   }
 }

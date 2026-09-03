@@ -2,10 +2,12 @@ import assert from "node:assert/strict";
 import {
   buildDuotoneMatrix,
   getAnchoredScrollPosition,
+  getCurrentPageNumber,
   getKeyboardCommand,
   getPageAnchor,
   getWheelZoomDirection,
-  normalizeHexColor
+  normalizeHexColor,
+  normalizePageNumber
 } from "../viewer-utils.js";
 
 assert.equal(getKeyboardCommand({ key: "+", ctrlKey: true }), "zoom-in");
@@ -17,6 +19,28 @@ assert.equal(getKeyboardCommand({ key: "+", ctrlKey: false }), "");
 assert.equal(getWheelZoomDirection({ ctrlKey: true, deltaY: -100 }), 1);
 assert.equal(getWheelZoomDirection({ ctrlKey: true, deltaY: 100 }), -1);
 assert.equal(getWheelZoomDirection({ ctrlKey: false, deltaY: -100 }), 0);
+
+assert.equal(normalizePageNumber("7", 10, 3), 7);
+assert.equal(normalizePageNumber("0", 10, 3), 1);
+assert.equal(normalizePageNumber("99", 10, 3), 10);
+assert.equal(normalizePageNumber("", 10, 3), 3);
+assert.equal(normalizePageNumber("not-a-page", 10, 3), 3);
+assert.equal(normalizePageNumber("-2", 10, 3), 1);
+
+const currentPage = getCurrentPageNumber([
+  { top: 20, height: 800 },
+  { top: 842, height: 800 },
+  { top: 1664, height: 800 }
+], {
+  scrollTop: 1000,
+  height: 600
+});
+assert.equal(currentPage, 2);
+assert.equal(getCurrentPageNumber([
+  { top: 0, height: 400 },
+  { top: 420, height: 400 }
+], { scrollTop: 380, height: 40 }), 1);
+assert.equal(getCurrentPageNumber([], { scrollTop: 0, height: 600 }), null);
 
 const pageAnchor = getPageAnchor([
   { top: 20, left: 100, width: 600, height: 800 },

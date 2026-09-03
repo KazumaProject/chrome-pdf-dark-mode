@@ -4,6 +4,51 @@ function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
 }
 
+export function normalizePageNumber(value, totalPages, fallbackPage = 1) {
+  const pageCount = Number.parseInt(totalPages, 10);
+  if (!Number.isFinite(pageCount) || pageCount < 1) return 1;
+
+  const fallback = Number.parseInt(fallbackPage, 10);
+  const safeFallback = clamp(Number.isFinite(fallback) ? fallback : 1, 1, pageCount);
+  const rawValue = String(value ?? "").trim();
+  if (!/^[+-]?\d+$/.test(rawValue)) return safeFallback;
+
+  const pageNumber = Number.parseInt(rawValue, 10);
+  return clamp(Number.isFinite(pageNumber) ? pageNumber : safeFallback, 1, pageCount);
+}
+
+export function getCurrentPageNumber(pageRects, view) {
+  if (!pageRects.length) return null;
+
+  const viewportTop = Math.max(0, view.scrollTop || 0);
+  const viewportHeight = Math.max(0, view.height ?? view.clientHeight ?? 0);
+  const viewportBottom = viewportTop + viewportHeight;
+  const viewportCenter = viewportTop + viewportHeight / 2;
+  let selectedIndex = 0;
+  let largestVisibleHeight = -1;
+  let nearestCenterDistance = Number.POSITIVE_INFINITY;
+
+  for (let index = 0; index < pageRects.length; index += 1) {
+    const page = pageRects[index];
+    const top = page.top || 0;
+    const height = Math.max(0, page.height || 0);
+    const bottom = top + height;
+    const visibleHeight = Math.max(0, Math.min(bottom, viewportBottom) - Math.max(top, viewportTop));
+    const centerDistance = Math.abs((top + height / 2) - viewportCenter);
+
+    if (
+      visibleHeight > largestVisibleHeight
+      || (visibleHeight === largestVisibleHeight && centerDistance < nearestCenterDistance)
+    ) {
+      selectedIndex = index;
+      largestVisibleHeight = visibleHeight;
+      nearestCenterDistance = centerDistance;
+    }
+  }
+
+  return selectedIndex + 1;
+}
+
 export function normalizeHexColor(value, fallback) {
   return HEX_COLOR_PATTERN.test(value || "") ? value.toLowerCase() : fallback;
 }
