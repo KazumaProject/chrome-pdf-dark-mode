@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="800" viewBox="0 0 1280 800">
+  <defs>
+    <linearGradient id="brand" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#9b87ff"/>
+      <stop offset="1" stop-color="#5e3cff"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="12" stdDeviation="18" flood-color="#000" flood-opacity=".5"/>
+    </filter>
+  </defs>
+  <rect width="1280" height="800" fill="#0d0e11"/>
+  <rect width="1280" height="68" fill="#17191d"/>
+  <rect y="67" width="1280" height="1" fill="#383d46"/>
+  <rect x="16" y="16" width="36" height="36" rx="10" fill="url(#brand)"/>
+  <circle cx="33" cy="34" r="10" fill="#fff"/>
+  <circle cx="39" cy="34" r="10" fill="#7357f2"/>
+  <text x="64" y="41" font-family="Segoe UI, sans-serif" font-size="18" font-weight="700" fill="#f4f6f8">Dark PDF</text>
+  <rect x="174" y="16" width="100" height="36" rx="9" fill="#7c5cff"/>
+  <text x="224" y="40" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="13" font-weight="700" fill="#fff">Open PDF</text>
+  <rect x="286" y="16" width="252" height="36" rx="9" fill="#101216" stroke="#383d46"/>
+  <text x="300" y="40" font-family="Segoe UI, sans-serif" font-size="13" fill="#777f8b">Paste a PDF URL</text>
+  <rect x="550" y="16" width="58" height="36" rx="9" fill="#202329" stroke="#383d46"/>
+  <text x="579" y="40" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="13" fill="#f4f6f8">Load</text>
+  <text x="637" y="39" font-family="Segoe UI, sans-serif" font-size="13" fill="#cbd0d8">Dark</text>
+  <rect x="676" y="23" width="38" height="22" rx="11" fill="#7c5cff"/>
+  <circle cx="703" cy="34" r="8" fill="#fff"/>
+  <rect x="737" y="18" width="34" height="32" rx="8" fill="#202329" stroke="#383d46"/>
+  <text x="754" y="41" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="20" fill="#fff">−</text>
+  <text x="800" y="39" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="13" fill="#cbd0d8">125%</text>
+  <rect x="830" y="18" width="34" height="32" rx="8" fill="#202329" stroke="#383d46"/>
+  <text x="847" y="41" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="20" fill="#fff">+</text>
+  <rect x="878" y="18" width="44" height="32" rx="8" fill="#202329" stroke="#383d46"/>
+  <text x="900" y="39" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="12" fill="#cbd0d8">Fit</text>
+  <text x="945" y="27" font-family="Segoe UI, sans-serif" font-size="10" fill="#aab1bc">Reading</text>
+  <rect x="941" y="31" width="116" height="25" rx="6" fill="#101216" stroke="#383d46"/>
+  <text x="953" y="48" font-family="Segoe UI, sans-serif" font-size="11" fill="#f4f6f8">Material 3</text>
+  <text x="1081" y="27" font-family="Segoe UI, sans-serif" font-size="10" fill="#aab1bc">Text</text>
+  <rect x="1078" y="31" width="38" height="25" rx="6" fill="#e6e1e5" stroke="#57525a"/>
+  <text x="1138" y="27" font-family="Segoe UI, sans-serif" font-size="10" fill="#aab1bc">Paper</text>
+  <rect x="1135" y="31" width="38" height="25" rx="6" fill="#1d1b20" stroke="#57525a"/>
+
+  <rect x="0" y="68" width="1280" height="732" fill="#101114"/>
+  <rect x="108" y="96" width="1064" height="650" rx="4" fill="#09090b"/>
+  <g filter="url(#shadow)">
+    <rect x="310" y="102" width="660" height="620" fill="#1d1b20"/>
+  </g>
+  <text x="360" y="161" font-family="Georgia, serif" font-size="28" font-weight="700" fill="#e6e1e5">A more comfortable way to read PDFs</text>
+  <rect x="360" y="182" width="560" height="2" fill="#6750a4"/>
+  <text x="360" y="224" font-family="Segoe UI, sans-serif" font-size="17" fill="#e6e1e5">Dark PDF Viewer keeps documents local and readable.</text>
+  <text x="360" y="255" font-family="Segoe UI, sans-serif" font-size="15" fill="#c9c5ca">Choose a Material-inspired theme or create your own colors.</text>
+  <text x="360" y="286" font-family="Segoe UI, sans-serif" font-size="15" fill="#c9c5ca">Select and copy text. Zoom with familiar Chrome shortcuts.</text>
+  <text x="360" y="317" font-family="Segoe UI, sans-serif" font-size="15" fill="#c9c5ca">Only nearby pages render, keeping large documents responsive.</text>
+  <rect x="360" y="360" width="260" height="140" rx="12" fill="#27242a" stroke="#49454f"/>
+  <circle cx="399" cy="400" r="18" fill="#6750a4"/>
+  <text x="399" y="407" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="20" fill="#fff">✓</text>
+  <text x="430" y="402" font-family="Segoe UI, sans-serif" font-size="16" font-weight="700" fill="#e6e1e5">Selectable text</text>
+  <text x="385" y="445" font-family="Segoe UI, sans-serif" font-size="13" fill="#c9c5ca">Drag across PDF text and</text>
+  <text x="385" y="469" font-family="Segoe UI, sans-serif" font-size="13" fill="#c9c5ca">copy it normally.</text>
+  <rect x="660" y="360" width="260" height="140" rx="12" fill="#27242a" stroke="#49454f"/>
+  <circle cx="699" cy="400" r="18" fill="#6750a4"/>
+  <path d="M704 383l-15 20h10l-5 17 16-23h-10z" fill="#fff"/>
+  <text x="730" y="402" font-family="Segoe UI, sans-serif" font-size="16" font-weight="700" fill="#e6e1e5">Lazy rendering</text>
+  <text x="685" y="445" font-family="Segoe UI, sans-serif" font-size="13" fill="#c9c5ca">Render only the pages</text>
+  <text x="685" y="469" font-family="Segoe UI, sans-serif" font-size="13" fill="#c9c5ca">near your current view.</text>
+  <rect x="360" y="548" width="560" height="76" rx="10" fill="#211f23" stroke="#49454f"/>
+  <text x="390" y="581" font-family="Segoe UI, sans-serif" font-size="13" fill="#c9c5ca">Ctrl + mouse wheel</text>
+  <text x="540" y="581" font-family="Segoe UI, sans-serif" font-size="13" fill="#e6e1e5">Zoom around the pointer</text>
+  <text x="390" y="607" font-family="Segoe UI, sans-serif" font-size="13" fill="#c9c5ca">Ctrl + 0</text>
+  <text x="540" y="607" font-family="Segoe UI, sans-serif" font-size="13" fill="#e6e1e5">Fit page width</text>
+  <rect x="879" y="680" width="74" height="24" rx="7" fill="#121114" fill-opacity=".8"/>
+  <text x="916" y="696" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="11" fill="#d4d0d5">1 / 14</text>
+</svg>
