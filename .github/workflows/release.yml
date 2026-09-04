@@ -2,14 +2,14 @@ name: Release extension
 
 on:
   push:
-    tags:
-      - "v*.*.*"
+    branches:
+      - main
 
 permissions:
   contents: write
 
 concurrency:
-  group: release-${{ github.ref }}
+  group: release-main
   cancel-in-progress: false
 
 jobs:
@@ -17,41 +17,62 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Check out tagged commit
+      - name: Check out main
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Validate tag and release commit
+      - name: Validate version and release state
         id: metadata
         shell: pwsh
         env:
-          RELEASE_TAG: ${{ github.ref_name }}
           RELEASE_SHA: ${{ github.sha }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           $manifest = Get-Content manifest.json -Raw | ConvertFrom-Json
-          if (-not $env:RELEASE_TAG.StartsWith("v")) {
-            throw "Release tags must start with v."
+          $package = Get-Content package.json -Raw | ConvertFrom-Json
+          $version = [string]$manifest.version
+
+          if ($version -notmatch '^\d+\.\d+\.\d+$') {
+            throw "manifest.json must contain a semantic version, found: $version"
+          }
+          if ([string]$package.version -ne $version) {
+            throw "package.json version $($package.version) does not match manifest.json version $version."
           }
 
-          $tagVersion = $env:RELEASE_TAG.Substring(1)
-          if ($tagVersion -ne $manifest.version) {
-            throw "Tag $env:RELEASE_TAG does not match manifest version $($manifest.version)."
+          $tag = "v$version"
+          $tagLines = git ls-remote --tags origin "refs/tags/$tag" "refs/tags/$tag^{}" 2>$null
+          $tagExists = ($LASTEXITCODE -eq 0 -and $tagLines.Count -gt 0)
+          if ($tagExists) {
+            $resolvedLine = $tagLines | Where-Object { $_ -match '\^\{\}$' } | Select-Object -First 1
+            if (-not $resolvedLine) {
+              $resolvedLine = $tagLines | Select-Object -First 1
+            }
+            $tagCommit = ($resolvedLine -split '\s+')[0]
+            if ($tagCommit -ne $env:RELEASE_SHA) {
+              throw "Release tag $tag already points to $tagCommit, not $env:RELEASE_SHA. Bump the version instead of moving the tag."
+            }
           }
 
-          git fetch origin main --no-tags
-          git merge-base --is-ancestor $env:RELEASE_SHA origin/main
-          if ($LASTEXITCODE -ne 0) {
-            throw "The release tag must point to a commit already contained in main."
-          }
+          gh release view $tag --repo $env:GITHUB_REPOSITORY 2>$null | Out-Null
+          $releaseExists = ($LASTEXITCODE -eq 0)
+          $releaseNeeded = -not $releaseExists
+          "tag=$tag" >> $env:GITHUB_OUTPUT
+          "version=$version" >> $env:GITHUB_OUTPUT
+          "tag_exists=$($tagExists.ToString().ToLowerInvariant())" >> $env:GITHUB_OUTPUT
+          "release_needed=$($releaseNeeded.ToString().ToLowerInvariant())" >> $env:GITHUB_OUTPUT
 
-          "version=$($manifest.version)" >> $env:GITHUB_OUTPUT
+      - name: Run tests
+        if: steps.metadata.outputs.release_needed == 'true'
+        run: npm test
 
       - name: Package extension
+        if: steps.metadata.outputs.release_needed == 'true'
         shell: pwsh
         run: ./scripts/package-store.ps1
 
       - name: Verify package
+        if: steps.metadata.outputs.release_needed == 'true'
         shell: pwsh
         env:
           ZIP_PATH: dist/Dark-PDF-Viewer-Chrome-Web-Store-v${{ steps.metadata.outputs.version }}.zip
@@ -61,8 +82,15 @@ jobs:
           }
 
       - name: Publish GitHub Release
+        if: steps.metadata.outputs.release_needed == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ steps.metadata.outputs.tag }}
+          TAG_EXISTS: ${{ steps.metadata.outputs.tag_exists }}
           ZIP_PATH: dist/Dark-PDF-Viewer-Chrome-Web-Store-v${{ steps.metadata.outputs.version }}.zip
         run: |
-          gh release create "$GITHUB_REF_NAME" "$ZIP_PATH" --repo "$GITHUB_REPOSITORY" --verify-tag --generate-notes --title "Dark PDF Viewer $GITHUB_REF_NAME"
+          if [ "$TAG_EXISTS" = "true" ]; then
+            gh release create "$RELEASE_TAG" "$ZIP_PATH" --repo "$GITHUB_REPOSITORY" --verify-tag --generate-notes --title "Dark PDF Viewer $RELEASE_TAG"
+          else
+            gh release create "$RELEASE_TAG" "$ZIP_PATH" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --generate-notes --title "Dark PDF Viewer $RELEASE_TAG"
+          fi

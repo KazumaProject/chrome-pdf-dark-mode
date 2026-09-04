@@ -64,14 +64,14 @@ powershell -ExecutionPolicy Bypass -File scripts/package-store.ps1
 
 ### リリース
 
-バージョンを`main`へマージした後、`v1.9.0`のように`manifest.json`と一致するタグをプッシュします。
+バージョンを`main`へマージすると、リリースワークフローが`v1.9.0`のように`manifest.json`と一致するタグを自動作成し、GitHub Releaseを公開します。
 
 ```bash
-git tag v1.9.0
-git push origin v1.9.0
+git switch main
+git pull --ff-only origin main
 ```
 
-リリースワークフローがタグと`manifest.json`のバージョンを検証し、拡張機能ZIPを作成してGitHub Releaseへ公開します。
+マニフェストとパッケージのバージョンを検証し、テストを実行して拡張機能ZIPを作成します。
 
 チェックリストとトラブルシューティングは[リリース手順](docs/RELEASE.ja.md)を参照してください。
 
