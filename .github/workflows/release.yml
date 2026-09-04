@@ -42,7 +42,11 @@ jobs:
 
           $tag = "v$version"
           $tagLines = git ls-remote --tags origin "refs/tags/$tag" "refs/tags/$tag^{}" 2>$null
-          $tagExists = ($LASTEXITCODE -eq 0 -and $tagLines.Count -gt 0)
+          $tagLookupExitCode = $LASTEXITCODE
+          if ($tagLookupExitCode -ne 0) {
+            throw "Unable to query release tag $tag (git exit code $tagLookupExitCode)."
+          }
+          $tagExists = ($tagLines.Count -gt 0)
           if ($tagExists) {
             $resolvedLine = $tagLines | Where-Object { $_ -match '\^\{\}$' } | Select-Object -First 1
             if (-not $resolvedLine) {
@@ -55,7 +59,15 @@ jobs:
           }
 
           gh release view $tag --repo $env:GITHUB_REPOSITORY 2>$null | Out-Null
-          $releaseExists = ($LASTEXITCODE -eq 0)
+          $releaseLookupExitCode = $LASTEXITCODE
+          if ($releaseLookupExitCode -eq 0) {
+            $releaseExists = $true
+          } else {
+            $releaseExists = $false
+          }
+          # A missing release is expected on the first run. Reset the native exit
+          # code so the GitHub Actions PowerShell wrapper does not fail the step.
+          $global:LASTEXITCODE = 0
           $releaseNeeded = -not $releaseExists
           "tag=$tag" >> $env:GITHUB_OUTPUT
           "version=$version" >> $env:GITHUB_OUTPUT

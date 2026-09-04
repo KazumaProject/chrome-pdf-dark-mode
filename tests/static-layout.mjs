@@ -42,6 +42,7 @@ assert.match(releaseWorkflow, /- main/);
 assert.match(releaseWorkflow, /contents:\s*write/);
 assert.match(releaseWorkflow, /npm test/);
 assert.match(releaseWorkflow, /git ls-remote/);
+assert.match(releaseWorkflow, /\$global:LASTEXITCODE\s*=\s*0/);
 assert.match(releaseWorkflow, /--target "\$GITHUB_SHA"/);
 assert.match(releaseWorkflow, /gh release create/);
 
