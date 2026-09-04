@@ -35,10 +35,14 @@ assert.equal(manifest.manifest_version, 3);
 assert.equal(manifest.default_locale, "en");
 assert.equal(manifest.version, "1.9.0");
 assert.equal(packageJson.version, "1.9.0");
-assert.match(releaseWorkflow, /tags:/);
-assert.match(releaseWorkflow, /v\*\.\*\.\*/);
+assert.match(packageJson.scripts.test, /node --check viewer\.js/);
+assert.match(packageJson.scripts.test, /node --check background\.js/);
+assert.match(releaseWorkflow, /branches:/);
+assert.match(releaseWorkflow, /- main/);
 assert.match(releaseWorkflow, /contents:\s*write/);
-assert.match(releaseWorkflow, /git merge-base --is-ancestor/);
+assert.match(releaseWorkflow, /npm test/);
+assert.match(releaseWorkflow, /git ls-remote/);
+assert.match(releaseWorkflow, /--target "\$GITHUB_SHA"/);
 assert.match(releaseWorkflow, /gh release create/);
 
 for (const theme of [

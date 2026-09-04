@@ -64,14 +64,14 @@ See [Chrome Web Store publishing instructions](docs/CHROME_WEB_STORE.md).
 
 ### Releases
 
-After merging a version into `main`, push a matching tag such as `v1.9.0`:
+After merging a version into `main`, the release workflow automatically creates the matching tag, such as `v1.9.0`, and publishes the GitHub Release:
 
 ```bash
-git tag v1.9.0
-git push origin v1.9.0
+git switch main
+git pull --ff-only origin main
 ```
 
-The release workflow validates the tag against `manifest.json`, packages the extension, and publishes the ZIP to a GitHub Release.
+It validates both package versions, runs the tests, packages the extension, and publishes the ZIP to a GitHub Release.
 
 See the complete [Release Guide](docs/RELEASE.md) for the checklist and troubleshooting steps.
 
