@@ -27,7 +27,7 @@ Windowsでアップロード用ZIPを作成します。
 powershell -ExecutionPolicy Bypass -File scripts/package-store.ps1
 ```
 
-`dist/Dark-PDF-Viewer-Chrome-Web-Store-v1.9.0.zip`が作成されます。ZIPのルートにはアップロードに必要な`manifest.json`が配置されます。
+`dist/Dark-PDF-Viewer-Chrome-Web-Store-v1.9.1.zip`が作成されます。ZIPのルートにはアップロードに必要な`manifest.json`が配置されます。
 
 申請前に`chrome://extensions`からリポジトリのフォルダーを読み込み、次を確認してください。
 

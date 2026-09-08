@@ -11,6 +11,7 @@ $PackageItems = @(
   "background.js",
   "icons",
   "manifest.json",
+  "pdf-source.js",
   "vendor",
   "viewer-utils.js",
   "viewer.css",

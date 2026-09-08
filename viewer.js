@@ -1,5 +1,9 @@
 import * as pdfjsLib from "./vendor/pdf.mjs";
 import {
+  createLocalPdfRangeTransport,
+  PDF_RANGE_CHUNK_SIZE
+} from "./pdf-source.js";
+import {
   buildDuotoneMatrix,
   getAnchoredScrollPosition,
   getCurrentPageNumber,
@@ -105,6 +109,7 @@ let activeCanvasRenderTasks = new Set();
 let pageCache = new Map();
 let pageMetrics = new Map();
 let pageEntries = [];
+let pageRectCache = null;
 let pageObserver = null;
 let pageRenderQueue = new Set();
 let pageRenderWorkers = 0;
@@ -115,6 +120,7 @@ let pageScrubberFrame = 0;
 let pendingScrubberPage = 0;
 let noticeTimer = 0;
 let dragDepth = 0;
+let sourceLoadGeneration = 0;
 
 const PAGE_SCRUBBER_IDLE_DELAY = 1800;
 
@@ -216,17 +222,25 @@ function setCurrentPageNumber(value) {
     return;
   }
 
-  currentPageNumber = normalizePageNumber(value, totalPages, currentPageNumber || 1);
+  const nextPageNumber = normalizePageNumber(value, totalPages, currentPageNumber || 1);
+  if (currentPageNumber === nextPageNumber) return;
+  currentPageNumber = nextPageNumber;
   updatePageNavigation();
 }
 
 function getPageRectData() {
-  return pageEntries.map((entry) => ({
+  if (pageRectCache) return pageRectCache;
+  pageRectCache = pageEntries.map((entry) => ({
     top: entry.pageElement.offsetTop,
     left: entry.pageElement.offsetLeft,
     width: entry.pageElement.offsetWidth,
     height: entry.pageElement.offsetHeight
   }));
+  return pageRectCache;
+}
+
+function invalidatePageLayout() {
+  pageRectCache = null;
 }
 
 function updateCurrentPageFromScroll() {
@@ -408,6 +422,7 @@ function showEmptyState() {
   elements.fileAccessState.hidden = true;
   elements.loadingState.hidden = true;
   elements.pdfPages.replaceChildren();
+  invalidatePageLayout();
   updatePageNavigation();
 }
 
@@ -418,38 +433,9 @@ function showFileAccessState(source) {
   elements.emptyState.classList.add("hidden");
   elements.loadingState.hidden = true;
   elements.pdfPages.replaceChildren();
+  invalidatePageLayout();
   elements.fileAccessState.hidden = false;
   updatePageNavigation();
-}
-
-function loadBytesWithXhr(source) {
-  return new Promise((resolve, reject) => {
-    const request = new XMLHttpRequest();
-    request.open("GET", source, true);
-    request.responseType = "arraybuffer";
-    request.withCredentials = false;
-    request.onload = () => {
-      // Local file requests report status 0 when they succeed.
-      if ((request.status >= 200 && request.status < 300) || (request.status === 0 && request.response)) {
-        resolve(request.response);
-        return;
-      }
-      reject(new Error(request.status ? `HTTP ${request.status}` : "Chrome could not read the local file"));
-    };
-    request.onerror = () => reject(new Error("Chrome could not read the local file"));
-    request.send();
-  });
-}
-
-async function downloadPdfBytes(source) {
-  if (source.startsWith("file:")) return loadBytesWithXhr(source);
-
-  const response = await fetch(source, {
-    credentials: "omit",
-    cache: "default"
-  });
-  if (!response.ok) throw new Error(`HTTP ${response.status}`);
-  return response.arrayBuffer();
 }
 
 function getPageScale(baseViewport) {
@@ -460,16 +446,11 @@ function getPageScale(baseViewport) {
 }
 
 function captureViewPosition(point) {
-  const pages = Array.from(elements.pdfPages.children);
-  if (!pages.length) return null;
+  const pageRects = getPageRectData();
+  if (!pageRects.length) return null;
 
   return getPageAnchor(
-    pages.map((page) => ({
-      top: page.offsetTop,
-      left: page.offsetLeft,
-      width: page.offsetWidth,
-      height: page.offsetHeight
-    })),
+    pageRects,
     {
       scrollTop: elements.viewerArea.scrollTop,
       scrollLeft: elements.viewerArea.scrollLeft,
@@ -546,6 +527,7 @@ async function renderPageEntry(entry, generation) {
     entry.pageElement.style.setProperty("--total-scale-factor", String(displayScale));
     entry.pageElement.style.width = `${Math.ceil(displayViewport.width)}px`;
     entry.pageElement.style.height = `${Math.ceil(displayViewport.height)}px`;
+    invalidatePageLayout();
     if (layoutAnchor) {
       const anchorEntry = pageEntries[layoutAnchor.pageNumber - 1];
       if (anchorEntry) restoreViewPosition(layoutAnchor, anchorEntry.pageElement);
@@ -695,6 +677,7 @@ async function renderDocument() {
     });
 
     elements.pdfPages.replaceChildren(...pageEntries.map((entry) => entry.pageElement));
+    invalidatePageLayout();
     setCurrentPageNumber(revealPageNumber);
     const revealEntry = pageEntries[revealPageNumber - 1];
     if (viewPosition && revealEntry) restoreViewPosition(viewPosition, revealEntry.pageElement);
@@ -714,12 +697,37 @@ async function renderDocument() {
   }
 }
 
-async function openPdfBytes(bytes, displayName, originalSource = "") {
+function createPdfLoadingTask(source) {
+  return pdfjsLib.getDocument({
+    ...source,
+    cMapUrl: assetUrl("vendor/cmaps/"),
+    cMapPacked: true,
+    standardFontDataUrl: assetUrl("vendor/standard_fonts/"),
+    wasmUrl: assetUrl("vendor/wasm/"),
+    isEvalSupported: false,
+    enableScripting: false,
+    withCredentials: false,
+    disableAutoFetch: true,
+    disableStream: true,
+    rangeChunkSize: PDF_RANGE_CHUNK_SIZE
+  });
+}
+
+async function openPdfSource(
+  source,
+  displayName,
+  originalSource,
+  loadingMessage,
+  loadGeneration
+) {
+  if (loadGeneration !== sourceLoadGeneration) return;
+
   renderGeneration += 1;
   cancelActivePageRenders();
   pageCache = new Map();
   pageMetrics = new Map();
   pageEntries = [];
+  invalidatePageLayout();
   currentPageNumber = 0;
   pendingZoomAnchor = null;
   if (currentLoadingTask) {
@@ -727,24 +735,17 @@ async function openPdfBytes(bytes, displayName, originalSource = "") {
     currentLoadingTask = null;
     pdfDocument = null;
   }
+  if (loadGeneration !== sourceLoadGeneration) return;
 
   updatePageNavigation();
 
   currentSource = originalSource;
   elements.originalButton.disabled = !originalSource;
   document.title = `${displayName} — Dark PDF`;
-  showLoading("Reading PDF…");
+  showLoading(loadingMessage);
 
   try {
-    currentLoadingTask = pdfjsLib.getDocument({
-      data: new Uint8Array(bytes),
-      cMapUrl: assetUrl("vendor/cmaps/"),
-      cMapPacked: true,
-      standardFontDataUrl: assetUrl("vendor/standard_fonts/"),
-      wasmUrl: assetUrl("vendor/wasm/"),
-      isEvalSupported: false,
-      enableScripting: false
-    });
+    const loadingTask = currentLoadingTask = createPdfLoadingTask(source);
     currentLoadingTask.onPassword = (updatePassword, reason) => {
       const firstAttempt = reason === pdfjsLib.PasswordResponses.NEED_PASSWORD;
       const password = window.prompt(
@@ -752,9 +753,20 @@ async function openPdfBytes(bytes, displayName, originalSource = "") {
       );
       if (password !== null) updatePassword(password);
     };
-    pdfDocument = await currentLoadingTask.promise;
+    currentLoadingTask.onProgress = ({ loaded, total }) => {
+      if (loadGeneration !== sourceLoadGeneration || elements.loadingState.hidden || !total) return;
+      elements.loadingText.textContent = `${loadingMessage} ${Math.round((loaded / total) * 100)}%`;
+    };
+    pdfDocument = await loadingTask.promise;
+    if (loadGeneration !== sourceLoadGeneration || loadingTask !== currentLoadingTask) {
+      await loadingTask.destroy();
+      return;
+    }
     await renderDocument();
   } catch (error) {
+    if (loadGeneration !== sourceLoadGeneration) return;
+    currentLoadingTask = null;
+    pdfDocument = null;
     hideLoading();
     showEmptyState();
     showNotice(`Could not open this PDF: ${error.message || "Unknown error"}`, 9000);
@@ -768,6 +780,7 @@ async function loadRemoteSource(rawSource) {
     return;
   }
 
+  const loadGeneration = ++sourceLoadGeneration;
   pendingSource = source;
 
   if (
@@ -776,24 +789,21 @@ async function loadRemoteSource(rawSource) {
     chrome.extension?.isAllowedFileSchemeAccess &&
     !(await chrome.extension.isAllowedFileSchemeAccess())
   ) {
+    if (loadGeneration !== sourceLoadGeneration) return;
     showFileAccessState(source);
     return;
   }
 
-  showLoading("Downloading PDF…");
+  if (loadGeneration !== sourceLoadGeneration) return;
+  showLoading("Opening PDF…");
   elements.urlInput.value = source;
-
-  try {
-    const bytes = await downloadPdfBytes(source);
-    await openPdfBytes(bytes, fileNameFromUrl(source), source);
-  } catch (error) {
-    hideLoading();
-    showEmptyState();
-    showNotice(
-      `Could not download this PDF (${error.message || "network error"}). Save it, then use Open PDF.`,
-      9000
-    );
-  }
+  await openPdfSource(
+    { url: source },
+    fileNameFromUrl(source),
+    source,
+    "Opening PDF…",
+    loadGeneration
+  );
 }
 
 async function loadLocalFile(file) {
@@ -804,11 +814,25 @@ async function loadLocalFile(file) {
     return;
   }
 
-  showLoading("Reading local PDF…");
+  const loadGeneration = ++sourceLoadGeneration;
+  showLoading("Reading the first PDF range…");
   try {
-    await openPdfBytes(await file.arrayBuffer(), file.name);
+    const range = await createLocalPdfRangeTransport(pdfjsLib, file, PDF_RANGE_CHUNK_SIZE);
+    if (loadGeneration !== sourceLoadGeneration) {
+      range.abort();
+      return;
+    }
+    await openPdfSource(
+      { range },
+      file.name,
+      "",
+      "Reading PDF…",
+      loadGeneration
+    );
+    if (loadGeneration !== sourceLoadGeneration) return;
     elements.urlInput.value = file.name;
   } catch (error) {
+    if (loadGeneration !== sourceLoadGeneration) return;
     hideLoading();
     showEmptyState();
     showNotice(`Could not read this file: ${error.message || "Unknown error"}`, 9000);
