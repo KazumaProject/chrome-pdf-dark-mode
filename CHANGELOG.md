@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.9.1 — 2026-09-08
+
+- Fixed the vertical page scrubber direction.
+- Enabled range-first PDF.js loading for remote and selected local files.
+- Reduced scroll-time layout work while keeping nearby-page rendering lazy.
+
 ## 1.9.0 — 2026-09-03
 
 - Added Nord, Catppuccin Mocha, Solarized Dark, Dracula, and Sepia Paper themes.

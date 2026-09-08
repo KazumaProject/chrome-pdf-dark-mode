@@ -27,7 +27,7 @@ On Windows, generate the upload package:
 powershell -ExecutionPolicy Bypass -File scripts/package-store.ps1
 ```
 
-This creates `dist/Dark-PDF-Viewer-Chrome-Web-Store-v1.9.0.zip`. The ZIP has `manifest.json` at its root, as required for extension upload.
+This creates `dist/Dark-PDF-Viewer-Chrome-Web-Store-v1.9.1.zip`. The ZIP has `manifest.json` at its root, as required for extension upload.
 
 Before submission, load the repository directory through `chrome://extensions` and test:
 

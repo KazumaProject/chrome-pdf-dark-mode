@@ -467,7 +467,7 @@ input:focus-visible {
   accent-color: var(--accent);
   cursor: grab;
   writing-mode: vertical-lr;
-  direction: rtl;
+  direction: ltr;
 }
 
 .page-scrubber input[type="range"]:active {
