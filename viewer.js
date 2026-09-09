@@ -686,12 +686,14 @@ function renderSvgAnnotation(overlay, annotation, viewport, { selected = false, 
   if (annotation.kind === TEXT_TOOL) {
     const bounds = getAnnotationBounds(annotation);
     const fontSize = Math.max(6, Number(annotation.fontSize) || DEFAULT_TEXT_FONT_SIZE);
+    const [baselineX, baselineY] = viewportPoint(viewport, [bounds[0], bounds[1]]);
+    const rotation = Number(viewport.rotation || 0);
     const textElement = createSvgElement("text", {
-      x: bounds[0],
-      y: bounds[1],
-      transform: `matrix(${viewport.transform.join(" ")})`,
+      x: baselineX,
+      y: baselineY,
+      transform: `rotate(${rotation} ${baselineX} ${baselineY})`,
       fill: annotation.color,
-      "font-size": fontSize,
+      "font-size": fontSize * Number(viewport.scale || 1),
       "font-family": "Arial, Helvetica, sans-serif",
       "dominant-baseline": "alphabetic",
       class: preview ? "annotation-preview" : "annotation-stroke"
