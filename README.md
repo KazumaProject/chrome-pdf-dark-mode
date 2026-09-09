@@ -14,6 +14,10 @@ A local-first Chrome extension for reading PDFs with comfortable dark themes, se
 - `Ctrl` + mouse wheel, `Ctrl` + `+`, `Ctrl` + `-`, and `Ctrl` + `0` zoom shortcuts
 - Stable zoom anchoring that keeps the current page and reading position
 - Local `file:///` PDFs, drag-and-drop files, PDF links, and HTTP/HTTPS PDF URLs
+- Editable PDF annotations: freehand pen, lines, rectangles, ellipses, arrows, and typed text
+- Annotation color and thickness controls, translucent shape fills, selection, move, resize, delete, undo, and redo
+- Save a new editable copy of the whole PDF or selected pages; page ranges accept `1`, `1-3`, and `1,4-6`
+- Extract embedded text from editable page ranges or dragged PDF text selections, then edit, copy, or download it as TXT
 - Completely local PDF processing with no analytics or developer-operated server
 
 ## Install manually
@@ -32,6 +36,9 @@ For PDFs opened from `file:///C:/...`, open the extension's details page and ena
 - Right-click a PDF link and select **Open PDF in Dark Mode**.
 - Select **Open PDF** or drag a local PDF into the viewer.
 - Choose a preset from **Reading**, or select custom **Text** and **Paper** colors.
+- Choose **Annotate** to draw or place text. Pen strokes stay in one writing object until you click **Finish pen**; selecting another tool, changing pages, closing the panel, or saving also finishes it. Select any annotation to move, resize, recolor, edit text, or delete it.
+- Choose **Save PDF** to export the whole document or a page range. Exports are new files; the source PDF is never overwritten.
+- Choose **Extract text**, enter a page range, or drag across selectable PDF text and use **Use selected text**. The result remains editable before copying or downloading.
 
 ### Shortcuts
 
@@ -44,11 +51,11 @@ For PDFs opened from `file:///C:/...`, open the extension's details page and ena
 | `D` | Toggle dark mode |
 | `Ctrl` + `C` | Copy selected PDF text |
 
-Scanned image-only PDFs require OCR before their text can be selected.
+Scanned image-only PDFs require OCR before their text can be selected or extracted. Password-protected or unsupported PDFs may not be exportable.
 
 ## Development
 
-The extension uses Manifest V3 and bundles Mozilla PDF.js. It does not load executable code from remote servers.
+The extension uses Manifest V3 and bundles Mozilla PDF.js plus the local `pdf-lib` writer used for standard PDF annotations. It does not load executable code from remote servers.
 
 ```bash
 npm test
@@ -81,4 +88,4 @@ PDF contents and reading preferences stay on the device. See the [Privacy Policy
 
 ## License
 
-Extension code is available under the [MIT License](LICENSE). Mozilla PDF.js remains under its own license; see [Third-Party Notices](THIRD_PARTY_NOTICES.md) and `vendor/PDFJS-LICENSE.txt`.
+Extension code is available under the [MIT License](LICENSE). Mozilla PDF.js and `pdf-lib` remain under their own licenses; see [Third-Party Notices](THIRD_PARTY_NOTICES.md), `vendor/PDFJS-LICENSE.txt`, and `vendor/PDF-LIB-LICENSE.txt`.

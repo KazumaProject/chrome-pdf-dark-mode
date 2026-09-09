@@ -64,6 +64,18 @@
         <button id="pageLastButton" class="icon-button" type="button" title="Last page" aria-label="Last page" disabled>»</button>
       </nav>
 
+      <div class="separator edit-separator" aria-hidden="true"></div>
+
+      <button id="annotationButton" class="button subtle" type="button" disabled>
+        Annotate
+      </button>
+      <button id="savePdfButton" class="button subtle" type="button" disabled>
+        Save PDF
+      </button>
+      <button id="extractTextButton" class="button subtle" type="button" disabled>
+        Extract text
+      </button>
+
       <label class="switch-control" title="Turn dark mode on or off">
         <input id="darkModeToggle" type="checkbox" checked>
         <span class="switch" aria-hidden="true"></span>
@@ -166,6 +178,76 @@
         </p>
       </section>
 
+      <section id="annotationPanel" class="tool-panel annotation-panel" aria-label="PDF annotation tools" hidden>
+        <div class="panel-heading">
+          <div>
+            <strong>Annotate PDF</strong>
+            <span id="annotationStatus" class="panel-status">Select a tool, then draw on a page.</span>
+          </div>
+          <button id="closeAnnotationButton" class="icon-button panel-close" type="button" title="Close annotation tools" aria-label="Close annotation tools">×</button>
+        </div>
+        <div class="annotation-toolbar-row">
+          <div class="annotation-tool-group" role="toolbar" aria-label="Annotation tools">
+            <button class="button tool-button active" type="button" data-annotation-tool="select" aria-pressed="true">Select</button>
+            <button class="button tool-button" type="button" data-annotation-tool="pen" aria-pressed="false">Pen</button>
+            <button class="button tool-button" type="button" data-annotation-tool="line" aria-pressed="false">Line</button>
+            <button class="button tool-button" type="button" data-annotation-tool="rectangle" aria-pressed="false">Rectangle</button>
+            <button class="button tool-button" type="button" data-annotation-tool="ellipse" aria-pressed="false">Ellipse</button>
+            <button class="button tool-button" type="button" data-annotation-tool="arrow" aria-pressed="false">Arrow</button>
+            <button class="button tool-button" type="button" data-annotation-tool="text" aria-pressed="false">Text</button>
+          </div>
+          <div class="annotation-style-group">
+            <label class="annotation-text-control" title="Text to place on the PDF">
+              <span>Text</span>
+              <input id="annotationTextInput" type="text" value="Text" maxlength="500" autocomplete="off" spellcheck="false" placeholder="Type text">
+            </label>
+            <label class="annotation-color-control" title="Annotation stroke and fill color">
+              <span>Color</span>
+              <input id="annotationColorInput" type="color" value="#ff5f56">
+            </label>
+            <label class="annotation-thickness-control" title="Annotation stroke thickness">
+              <span>Thickness</span>
+              <input id="annotationThicknessRange" type="range" min="1" max="12" step="1" value="3">
+              <output id="annotationThicknessOutput" for="annotationThicknessRange">3 pt</output>
+            </label>
+          </div>
+          <div class="annotation-history-group">
+            <button id="annotationFinishButton" class="button primary" type="button" disabled>Finish pen</button>
+            <button id="annotationUndoButton" class="button" type="button" disabled>Undo</button>
+            <button id="annotationRedoButton" class="button" type="button" disabled>Redo</button>
+            <button id="annotationDeleteButton" class="button danger-button" type="button" disabled>Delete</button>
+          </div>
+        </div>
+        <p class="panel-help">Choose Text, type your words above, then click a page. Select any placed annotation to move, resize, recolor, edit, or delete it. Shape fills are translucent so the original text stays readable.</p>
+      </section>
+
+      <section id="extractPanel" class="tool-panel extract-panel" aria-label="Text extraction" hidden>
+        <div class="panel-heading">
+          <div>
+            <strong>Extract text</strong>
+            <span id="extractStatus" class="panel-status">Extract a page range or select text in the document.</span>
+          </div>
+          <button id="closeExtractButton" class="icon-button panel-close" type="button" title="Close text extraction" aria-label="Close text extraction">×</button>
+        </div>
+        <div class="extract-controls">
+          <label class="page-range-control">
+            <span>Pages</span>
+            <input id="extractPageRangeInput" type="text" inputmode="text" autocomplete="off" spellcheck="false" placeholder="1, 4-6">
+          </label>
+          <button id="extractRangeButton" class="button primary" type="button">Extract range</button>
+          <button id="extractSelectionButton" class="button" type="button" disabled>Use selected text</button>
+        </div>
+        <p id="extractPageRangeError" class="inline-error" role="alert" hidden></p>
+        <p id="extractPageRangeSummary" class="range-summary"></p>
+        <textarea id="extractedText" class="extracted-text" spellcheck="false" aria-label="Extracted editable text" placeholder="Extracted text will appear here. You can edit it before copying or downloading."></textarea>
+        <div class="extract-actions">
+          <button id="copyExtractedTextButton" class="button" type="button" disabled>Copy</button>
+          <button id="downloadExtractedTextButton" class="button" type="button" disabled>Download TXT</button>
+          <button id="resetExtractedTextButton" class="button subtle" type="button" disabled>Reset</button>
+        </div>
+        <p class="panel-help">Scanned image-only PDFs have no embedded text to extract. Drag across selectable PDF text to use the current browser selection.</p>
+      </section>
+
       <div id="pdfPages" class="pdf-pages dark" aria-label="PDF pages"></div>
 
       <aside id="pageScrubber" class="page-scrubber" aria-label="Page scrubber" hidden>
@@ -196,6 +278,34 @@
     </main>
 
     <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
+
+    <dialog id="saveDialog" class="pdf-dialog">
+      <form id="saveForm" method="dialog">
+        <div class="dialog-heading">
+          <div>
+            <strong>Save annotated PDF</strong>
+            <span class="panel-status">The original PDF will stay unchanged.</span>
+          </div>
+          <button id="closeSaveDialogButton" class="icon-button panel-close" type="button" title="Close save dialog" aria-label="Close save dialog">×</button>
+        </div>
+        <fieldset class="save-scope-options">
+          <legend>Pages to save</legend>
+          <label><input type="radio" name="saveScope" value="whole" checked> Whole PDF</label>
+          <label><input type="radio" name="saveScope" value="selected"> Selected pages</label>
+        </fieldset>
+        <label id="savePageRangeControl" class="page-range-control" hidden>
+          <span>Page range</span>
+          <input id="savePageRangeInput" type="text" inputmode="text" autocomplete="off" spellcheck="false" placeholder="1, 4-6">
+        </label>
+        <p id="savePageRangeError" class="inline-error" role="alert" hidden></p>
+        <p id="savePageRangeSummary" class="range-summary"></p>
+        <p class="panel-help">Saving rewrites the PDF, so any existing digital signature on the exported copy will be invalidated.</p>
+        <div class="dialog-actions">
+          <button id="cancelSaveButton" class="button" type="button">Cancel</button>
+          <button id="confirmSaveButton" class="button primary" type="submit">Save PDF</button>
+        </div>
+      </form>
+    </dialog>
 
     <script type="module" src="viewer.js"></script>
   </body>

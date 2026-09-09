@@ -3,6 +3,6 @@
     "message": "Dark PDF Viewer"
   },
   "extensionDescription": {
-    "message": "ダークテーマ、文字選択、カスタム配色、軽量な遅延描画に対応したPDFビューアーです。"
+    "message": "PDFの閲覧、注釈、保存、テキスト抽出に対応したダークテーマPDFビューアーです。"
   }
 }

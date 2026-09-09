@@ -43,13 +43,16 @@ assert.match(js, /pageRectCache/);
 assert.match(js, /if \(currentPageNumber === nextPageNumber\) return/);
 assert.equal(manifest.manifest_version, 3);
 assert.equal(manifest.default_locale, "en");
-assert.equal(manifest.version, "1.9.1");
-assert.equal(packageJson.version, "1.9.1");
+assert.equal(manifest.version, "1.11.3");
+assert.equal(packageJson.version, "1.11.3");
 assert.match(packageJson.scripts.test, /node --check viewer\.js/);
 assert.match(packageJson.scripts.test, /node --check pdf-source\.js/);
 assert.match(packageJson.scripts.test, /node --check background\.js/);
 assert.match(packageJson.scripts.test, /node tests\/pdf-source\.mjs/);
+assert.match(packageJson.scripts.test, /node tests\/pdf-annotations\.mjs/);
+assert.equal(packageJson.dependencies["pdf-lib"], "1.17.1");
 assert.match(packageStoreScript, /"pdf-source\.js"/);
+assert.match(packageStoreScript, /"pdf-annotations\.js"/);
 assert.match(releaseWorkflow, /branches:/);
 assert.match(releaseWorkflow, /- main/);
 assert.match(releaseWorkflow, /contents:\s*write/);
@@ -88,5 +91,38 @@ for (const control of [
 ]) {
   assert(html.includes(`id="${control}"`), `Missing page control: ${control}`);
 }
+
+for (const control of [
+  "annotationButton",
+  "savePdfButton",
+  "extractTextButton",
+  "annotationPanel",
+  "annotationTextInput",
+  "annotationColorInput",
+  "annotationThicknessRange",
+  "annotationFinishButton",
+  "annotationUndoButton",
+  "annotationRedoButton",
+  "annotationDeleteButton",
+  "extractPanel",
+  "extractPageRangeInput",
+  "extractedText",
+  "copyExtractedTextButton",
+  "downloadExtractedTextButton",
+  "saveDialog",
+  "savePageRangeInput"
+]) {
+  assert(html.includes(`id="${control}"`), `Missing editing control: ${control}`);
+}
+
+assert.match(css, /\.annotation-overlay/);
+assert.match(css, /\.pdf-dialog/);
+assert.match(css, /\.extracted-text/);
+assert.match(js, /parsePageRange/);
+assert.match(js, /exportAnnotatedPdf/);
+assert.match(js, /getTextContent/);
+assert.match(js, /function finishPendingPen/);
+assert.match(js, /function finishPenAndSelect/);
+assert.match(js, /penSession/);
 
 console.log("static-layout: passed");
