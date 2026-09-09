@@ -371,6 +371,297 @@ input:focus-visible {
   font-variant-numeric: tabular-nums;
 }
 
+.edit-separator {
+  margin-left: auto;
+}
+
+.tool-panel {
+  position: fixed;
+  top: calc(var(--toolbar-height) + 16px);
+  z-index: 8;
+  width: min(920px, calc(100% - 32px));
+  padding: 13px 15px 12px;
+  border: 1px solid #4b435f;
+  border-radius: 14px;
+  background: rgb(27 27 35 / 96%);
+  box-shadow: 0 16px 45px rgb(0 0 0 / 35%);
+  backdrop-filter: blur(14px);
+}
+
+.tool-panel[hidden] {
+  display: none;
+}
+
+.annotation-panel {
+  left: 16px;
+}
+
+.extract-panel {
+  right: 16px;
+  width: min(520px, calc(100% - 32px));
+}
+
+.panel-heading,
+.dialog-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.panel-heading strong,
+.dialog-heading strong {
+  display: block;
+  color: var(--text);
+  font-size: 14px;
+}
+
+.panel-status {
+  display: block;
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.panel-close {
+  flex: 0 0 auto;
+  width: 28px;
+  min-height: 28px;
+  color: #bbc1cb;
+}
+
+.annotation-toolbar-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 11px;
+  margin-top: 13px;
+}
+
+.annotation-tool-group,
+.annotation-history-group,
+.annotation-style-group,
+.extract-controls,
+.extract-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px;
+}
+
+.annotation-tool-group {
+  flex: 1 1 auto;
+}
+
+.annotation-style-group {
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.tool-button.active,
+.tool-button[aria-pressed="true"] {
+  border-color: #9d8aff;
+  background: #332b54;
+  color: #eeeaff;
+}
+
+.annotation-color-control,
+.annotation-thickness-control,
+.annotation-text-control,
+.page-range-control {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.annotation-text-control {
+  min-width: 160px;
+}
+
+.annotation-text-control input[type="text"] {
+  width: 160px;
+  min-height: 31px;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: #101216;
+  color: var(--text);
+  font: inherit;
+}
+
+.annotation-text-control input[type="text"]:focus-visible {
+  outline: 2px solid #9d8aff;
+  outline-offset: 1px;
+}
+
+.annotation-text-control input[type="text"]:disabled {
+  opacity: 0.55;
+}
+
+.annotation-color-control input[type="color"] {
+  width: 48px;
+  height: 31px;
+  padding: 2px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: #101216;
+  cursor: pointer;
+}
+
+.annotation-color-control input[type="color"]::-webkit-color-swatch-wrapper {
+  padding: 1px;
+}
+
+.annotation-color-control input[type="color"]::-webkit-color-swatch {
+  border: 0;
+  border-radius: 4px;
+}
+
+.annotation-thickness-control {
+  min-width: 142px;
+}
+
+.annotation-thickness-control input[type="range"] {
+  width: 126px;
+  height: 17px;
+  margin: 0;
+  accent-color: var(--accent);
+}
+
+.annotation-thickness-control output {
+  position: absolute;
+  margin: 19px 0 0 96px;
+  color: #858d99;
+  font-variant-numeric: tabular-nums;
+}
+
+.danger-button {
+  color: #ffaaa5;
+}
+
+.panel-help {
+  margin: 10px 0 0;
+  color: #9298a4;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.extract-controls {
+  align-items: flex-end;
+  margin-top: 13px;
+}
+
+.page-range-control {
+  flex: 1 1 160px;
+}
+
+.page-range-control input {
+  width: 100%;
+  min-width: 0;
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #101216;
+  color: var(--text);
+}
+
+.page-range-control input:focus-visible,
+.extracted-text:focus-visible {
+  outline: 2px solid #9d8aff;
+  outline-offset: 2px;
+}
+
+.inline-error {
+  margin: 8px 0 0;
+  color: #ffaaa5;
+  font-size: 12px;
+}
+
+.range-summary {
+  min-height: 16px;
+  margin: 7px 0 0;
+  color: #a9b0bb;
+  font-size: 11px;
+}
+
+.extracted-text {
+  display: block;
+  width: 100%;
+  min-height: 230px;
+  margin-top: 4px;
+  resize: vertical;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: #101216;
+  color: #f1f3f4;
+  font: 13px/1.5 ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+}
+
+.extract-actions {
+  margin-top: 9px;
+}
+
+.pdf-dialog {
+  width: min(500px, calc(100% - 28px));
+  padding: 0;
+  border: 1px solid #4b435f;
+  border-radius: 15px;
+  background: #1b1b23;
+  color: var(--text);
+  box-shadow: 0 24px 80px rgb(0 0 0 / 58%);
+}
+
+.pdf-dialog::backdrop {
+  background: rgb(0 0 0 / 62%);
+  backdrop-filter: blur(2px);
+}
+
+.pdf-dialog form {
+  padding: 18px;
+}
+
+.save-scope-options {
+  display: grid;
+  gap: 10px;
+  margin: 20px 0 14px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.save-scope-options legend {
+  padding: 0 5px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.save-scope-options label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #d8dce3;
+  font-size: 13px;
+}
+
+.save-scope-options input {
+  accent-color: var(--accent);
+}
+
+.pdf-dialog .page-range-control {
+  margin-top: 4px;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 20px;
+}
+
 .range-control {
   flex-direction: column;
   align-items: stretch;
@@ -620,6 +911,71 @@ input:focus-visible {
   max-width: none;
   background: white;
   transition: filter 140ms ease;
+}
+
+.annotation-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+  touch-action: none;
+}
+
+.annotation-overlay.interactive {
+  pointer-events: auto;
+}
+
+.annotation-item {
+  cursor: default;
+}
+
+.annotation-overlay.interactive[data-tool="select"] .annotation-item {
+  cursor: move;
+  pointer-events: all;
+}
+
+.annotation-hit-area {
+  fill: transparent;
+  stroke: transparent;
+  pointer-events: stroke;
+}
+
+.annotation-overlay.interactive[data-tool="select"] .annotation-hit-area {
+  pointer-events: all;
+}
+
+.annotation-stroke {
+  vector-effect: non-scaling-stroke;
+}
+
+.annotation-item.selected .annotation-stroke {
+  filter: drop-shadow(0 0 2px rgb(255 255 255 / 85%));
+}
+
+.annotation-handle {
+  fill: #f6f3ff;
+  stroke: #6c50ff;
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+  cursor: nwse-resize;
+  pointer-events: auto;
+}
+
+.annotation-handle[data-handle="ne"],
+.annotation-handle[data-handle="sw"] {
+  cursor: nesw-resize;
+}
+
+.annotation-preview {
+  fill: rgb(124 92 255 / 14%);
+  stroke: #b2a5ff;
+  stroke-dasharray: 6 4;
+  pointer-events: none;
+  vector-effect: non-scaling-stroke;
 }
 
 .pdf-pages.dark .pdf-page,
@@ -880,6 +1236,21 @@ input:focus-visible {
     right: 4px;
     top: 8px;
     bottom: 10px;
+  }
+
+  .edit-separator {
+    display: none;
+  }
+
+  .tool-panel {
+    top: calc(var(--toolbar-height) + 8px);
+    width: calc(100% - 16px);
+  }
+
+  .annotation-panel,
+  .extract-panel {
+    left: 8px;
+    right: 8px;
   }
 }
 

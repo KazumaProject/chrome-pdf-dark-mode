@@ -1,12 +1,15 @@
 {
   "name": "dark-pdf-viewer",
-  "version": "1.9.1",
+  "version": "1.11.3",
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node tests/viewer-utils.mjs && node tests/pdf-source.mjs && node tests/static-layout.mjs && node tests/background.mjs && node --check viewer.js && node --check pdf-source.js && node --check background.js"
+    "test": "node tests/viewer-utils.mjs && node tests/pdf-source.mjs && node tests/pdf-annotations.mjs && node tests/static-layout.mjs && node tests/background.mjs && node --check viewer.js && node --check pdf-source.js && node --check pdf-annotations.js && node --check background.js"
   },
   "engines": {
     "node": ">=20"
+  },
+  "dependencies": {
+    "pdf-lib": "1.17.1"
   }
 }
